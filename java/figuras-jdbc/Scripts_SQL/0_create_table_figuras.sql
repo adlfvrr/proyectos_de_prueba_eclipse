@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS Figuras;
+
+CREATE TABLE Figuras(
+id SERIAL,
+tipo_id INT,
+area DECIMAL(18,2),
+PRIMARY KEY(id)
+);
+
+SELECT * FROM Figuras;

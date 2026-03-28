@@ -1,0 +1,23 @@
+package com.proy.maven.database;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class DBConnection {
+	private static Connection connection = null;
+	
+	public static Connection getConnection() {
+			try {
+				String url = "jdbc:postgresql://localhost:5432/your_database";
+				String user = "your_user";
+				String pass = "your_pass";
+				return DriverManager.getConnection(url, user, pass);
+			}
+			catch(SQLException ex) {
+				ex.printStackTrace();
+				return null;
+			}
+	}
+	
+}
