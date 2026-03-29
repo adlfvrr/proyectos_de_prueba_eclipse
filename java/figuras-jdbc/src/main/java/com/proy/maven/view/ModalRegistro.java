@@ -19,7 +19,10 @@ import java.awt.Color;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.awt.event.ActionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 
 public class ModalRegistro {
 
@@ -27,6 +30,7 @@ public class ModalRegistro {
 	private JTextField tbLargo;
 	private JTextField tbAncho;
 	private JTextField tbRadio;
+	private JTextField tbBuscarPorId;
 
 	/**
 	 * Launch the application.
@@ -44,6 +48,9 @@ public class ModalRegistro {
 		});
 	}
 
+	public JRadioButton rdbtnRectangulo;
+	public JRadioButton rdbtnCirculo;
+	
 	/**
 	 * Create the application.
 	 */
@@ -62,25 +69,49 @@ public class ModalRegistro {
 		frame.getContentPane().setLayout(null);
 		
 		JList list = new JList();
-		list.setBounds(10, 160, 629, 180);
-		frame.getContentPane().add(list);
+		list.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				
+				tbLargo.setText("");
+				tbRadio.setText("");
+				tbAncho.setText("");
+				rdbtnRectangulo.setSelected(false);
+				rdbtnCirculo.setSelected(false);
+				
+				
+				Figura f = (Figura)list.getSelectedValue();
+				if (f != null) {
+					if(f.getTipoId() == 1) {
+						tbAncho.setText("" + f.getAncho());
+						tbLargo.setText("" + f.getLargo());
+						rdbtnRectangulo.setSelected(true);
+					}
+					else {
+						tbRadio.setText("" + f.getRadio());
+						rdbtnCirculo.setSelected(true);
+					}
+				}
+			}
+		});
 		
 		JPanel panel = new JPanel();
 		panel.setBounds(10, 21, 143, 109);
 		frame.getContentPane().add(panel);
 		panel.setLayout(null);
 		
-		JRadioButton rdbtnRectangulo = new JRadioButton("Rectángulo");
+		rdbtnRectangulo = new JRadioButton("Rectángulo");
 		rdbtnRectangulo.setBounds(6, 31, 79, 23);
 		panel.add(rdbtnRectangulo);
 		
-		JRadioButton rdbtnCirculo = new JRadioButton("Círculo");
+		rdbtnCirculo = new JRadioButton("Círculo");
 		rdbtnCirculo.setBounds(6, 65, 109, 23);
 		panel.add(rdbtnCirculo);
 		
 		JLabel lblNewLabel = new JLabel("Tipo Figura:");
 		lblNewLabel.setBounds(6, 10, 65, 14);
 		panel.add(lblNewLabel);
+		list.setBounds(10, 160, 629, 180);
+		frame.getContentPane().add(list);
 		
 		JPanel panel_1 = new JPanel();
 		panel_1.setBounds(163, 21, 163, 109);
@@ -128,12 +159,12 @@ public class ModalRegistro {
 		panel_1_1.add(tbRadio);
 		
 		JLabel lblNewLabel_2 = new JLabel("Área:");
-		lblNewLabel_2.setBounds(509, 67, 46, 14);
+		lblNewLabel_2.setBounds(509, 38, 46, 14);
 		frame.getContentPane().add(lblNewLabel_2);
 		
 		JLabel lbArea = new JLabel("");
 		lbArea.setBackground(new Color(255, 255, 255));
-		lbArea.setBounds(548, 61, 78, 31);
+		lbArea.setBounds(548, 32, 78, 31);
 		frame.getContentPane().add(lbArea);
 		
 		JButton btnCrearFigura = new JButton("Crear figura");
@@ -209,5 +240,83 @@ public class ModalRegistro {
 		});
 		btnBorrar.setBounds(653, 284, 103, 39);
 		frame.getContentPane().add(btnBorrar);
+		
+		JLabel lblNewLabel_3 = new JLabel("Id:");
+		lblNewLabel_3.setBounds(509, 116, 46, 14);
+		frame.getContentPane().add(lblNewLabel_3);
+		
+		tbBuscarPorId = new JTextField();
+		tbBuscarPorId.setBounds(530, 113, 86, 20);
+		frame.getContentPane().add(tbBuscarPorId);
+		tbBuscarPorId.setColumns(10);
+		
+		JButton btnBuscar = new JButton("Buscar figura");
+		btnBuscar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				//reseteamos la list
+				DefaultListModel model = new DefaultListModel();
+				list.setModel(model);
+				
+				try {
+					if(!tbBuscarPorId.getText().isBlank()) {
+						int id = Integer.parseInt(tbBuscarPorId.getText());
+						Figura f = service.ObtenerPorId(id);
+						if(f != null) {
+							model.addElement(f);
+							JOptionPane.showMessageDialog(null, "Figura encontrada");
+						}
+						else {
+							JOptionPane.showMessageDialog(null, "No se encontró la figura con el id " + id);
+							
+						}
+					}
+				}
+				catch(RuntimeException ex) {
+					JOptionPane.showMessageDialog(null, "Fallo en la búsqueda: " + ex.getMessage());
+				}
+				
+			}
+		});
+		btnBuscar.setBounds(653, 107, 103, 23);
+		frame.getContentPane().add(btnBuscar);
+		
+		JButton btnActualizarFigura = new JButton("Actualizar");
+		btnActualizarFigura.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				try {
+					Figura f = (Figura)list.getSelectedValue();
+					if(f != null) {
+						if(f.getTipoId() == 1) {
+							f.setAncho(Double.parseDouble(tbAncho.getText()));
+							f.setLargo(Double.parseDouble(tbLargo.getText()));
+							if(service.Actualizar(f)) {
+							JOptionPane.showMessageDialog(null, String.format("Figura con id %d actualizada con éxito.", f.getId()));
+							}
+						}
+						else {
+							f.setRadio(Double.parseDouble(tbRadio.getText()));
+							if(service.Actualizar(f)) {
+							JOptionPane.showMessageDialog(null, String.format("Figura con id %d actualizada con éxito.", f.getId()));
+							}
+						}
+				}
+				}
+				catch(RuntimeException ex) {
+					JOptionPane.showMessageDialog(null, "Fallo en la actualización: " + ex.getMessage());
+				}
+				finally {
+					tbLargo.setText("");
+					tbRadio.setText("");
+					tbAncho.setText("");
+					rdbtnRectangulo.setSelected(false);
+					rdbtnCirculo.setSelected(false);
+					btnListarFiguras.doClick();
+				}
+			}
+		});
+		btnActualizarFigura.setBounds(653, 146, 103, 44);
+		frame.getContentPane().add(btnActualizarFigura);
 	}
 }
