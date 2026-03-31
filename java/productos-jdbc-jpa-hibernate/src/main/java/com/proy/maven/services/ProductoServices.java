@@ -5,6 +5,8 @@ import java.util.List;
 import com.proy.maven.dao.IProductoDAO;
 import com.proy.maven.dao.ProductoDAO;
 import com.proy.maven.entity.Producto;
+import com.proy.maven.entity.ProductoDigital;
+import com.proy.maven.entity.ProductoFisico;
 
 public class ProductoServices {
 	private IProductoDAO dao;
@@ -38,6 +40,16 @@ public class ProductoServices {
 		        throw new RuntimeException("El precio debe ser mayor a 0");
 		    if(p.getStock() < 0) 
 		        throw new RuntimeException("El stock no puede ser negativo");
+		    if(p instanceof ProductoFisico) {
+		    	if(((ProductoFisico) p).getPeso() <= 0) {
+		    		throw new RuntimeException("El peso no puede ser negativo o 0");
+		    	}
+		    }
+		    if(p instanceof ProductoDigital) {
+		    	if(((ProductoDigital) p).getUrlDescarga().isEmpty() || ((ProductoDigital) p).getUrlDescarga() == null) {
+		    		throw new RuntimeException("El producto digital debe tener un url de descarga");
+		    	}
+		    }
 		this.dao.add(p);
 		return true;
 	}
